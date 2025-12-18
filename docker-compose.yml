@@ -1,0 +1,82 @@
+version: '3.5'
+
+services:
+  temporal:
+    container_name: temporal
+    image: temporalio/auto-setup:1.20.0
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_DB=temporal
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  postgres:
+    container_name: temporal-postgres
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+      - POSTGRES_DB=temporal
+    networks:
+      - app-network
+
+  temporal-ui:
+    container_name: temporal-ui
+    image: temporalio/ui:2.13.0
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - temporal
+    networks:
+      - app-network
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  backend:
+    container_name: backend
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - temporal
+    environment:
+      - REDIS_HOST=redis
+      - TEMPORAL_HOST=temporal:7233
+    volumes:
+      - ./frontend:/app/frontend
+    networks:
+      - app-network
+
+  worker:
+    container_name: worker
+    build: ./worker
+    depends_on:
+      - temporal
+      - redis
+    environment:
+      - TEMPORAL_HOST=temporal:7233
+      - REDIS_HOST=redis
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

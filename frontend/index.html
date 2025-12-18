@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 300px; }
+        h1 { margin-bottom: 1.5rem; color: #333; }
+        input { width: 100%; padding: 10px; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #ff4d4f; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        button:hover { background: #ff7875; }
+        #status { margin-top: 1rem; color: #666; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>User Settings</h1>
+        <input type="text" id="userId" placeholder="Enter User ID" value="user123">
+        <button onclick="requestDelete()">Delete Account</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        async function requestDelete() {
+            const userId = document.getElementById('userId').value;
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = "Processing...";
+            
+            try {
+                const res = await fetch('http://localhost:8000/delete-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                const data = await res.json();
+                statusDiv.textContent = `Request sent for ${data.user_id}. Status: ${data.status}`;
+                statusDiv.style.color = "green";
+            } catch (e) {
+                statusDiv.textContent = "Error: " + e.message;
+                statusDiv.style.color = "red";
+            }
+        }
+    </script>
+</body>
+</html>
