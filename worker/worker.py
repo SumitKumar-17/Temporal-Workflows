@@ -2,7 +2,7 @@ import asyncio
 import os
 from temporalio.client import Client
 from temporalio.worker import Worker
-from workflows import DeleteUserWorkflow
+from workflows import DeleteUserWorkflow, DeleteMilvusWorkflow, DeleteS3Workflow, DeletePostgresWorkflow, SendEmailWorkflow
 from activities import delete_milvus, delete_s3, delete_postgres, send_email
 
 TEMPORAL_HOST = os.getenv("TEMPORAL_HOST", "localhost:7233")
@@ -22,7 +22,7 @@ async def main():
     worker = Worker(
         client,
         task_queue="delete-user-task-queue",
-        workflows=[DeleteUserWorkflow],
+        workflows=[DeleteUserWorkflow, DeleteMilvusWorkflow, DeleteS3Workflow, DeletePostgresWorkflow, SendEmailWorkflow],
         activities=[delete_milvus, delete_s3, delete_postgres, send_email],
     )
     await worker.run()
